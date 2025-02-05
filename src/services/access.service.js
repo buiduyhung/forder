@@ -3,6 +3,8 @@
 const shopModel = require("../models/shop.model")
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
+const KeyTokenService = require("./keyToken.service")
+const { createTokenPair } = require("../auth/authUtils")
 
 const roleShop = {
     SHOP: 'SHOP',
@@ -12,19 +14,22 @@ const roleShop = {
 }
 
 class AccessService {
-    static signUp = async ({name, email, password}) => {
+    static signUp = async ({ name, email, password }) => {
         try {
-            // step1: check email exits??
-            const hodleShop = await shopModel.findOne({email}).lean()
+            // Kiểm tra nếu email đã tồn tại trong cơ sở dữ liệu
+            const hodleShop = await shopModel.findOne({ email }).lean()
 
-            if(hodleShop){
+            if (hodleShop) {
                 return {
                     code: 'xxxxx',
                     message: 'Shop already registered!'
                 }
             }
 
+            // Mã hóa mật khẩu
             const passwordHash = await bcrypt.hash(password, 10)
+            
+            // Tạo mới shop
             const newShop = await shopModel.create({
                 name,
                 email,
@@ -32,16 +37,47 @@ class AccessService {
                 roles: [roleShop.SHOP]
             })
 
-            if(newShop){
-                // created privatekey, publickey
+            if (newShop) {
+                // Tạo cặp khóa RSA
                 const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
                     modulusLength: 4096,
                 })
 
-                console.log({ privateKey, publicKey }) // save collection keyStore
+                // Lưu khóa vào cơ sở dữ liệu hoặc thực hiện thao tác lưu trữ
+                console.log({ privateKey, publicKey })
+
+                const publicKeyString = await KeyTokenService.createKeyToken({
+                    userId: newShop._id,
+                    publicKey
+                })
+
+                if(!publicKeyString){
+                    return {
+                        code: 'xxxxx',
+                        message: 'publicKeyString error'
+                    }
+                }
+
+                // created tolen pair
+                const tokens = await createTokenPair({userId: newShop._id, email}, publicKey, privateKey)
+                console.log(`Created token success::`, tokens)
+
+                return {
+                    code: '201',
+                    metadata: {
+                        shop: newShop,
+                        tokens
+                    }
+                }
             }
 
-        }catch (error){
+            return {
+                code: '200',
+                metadata: null
+            }
+
+        } catch (error) {
+            console.error(error); // Log lỗi để dễ dàng debug
             return {
                 code: 'xxxxx',
                 message: error.message,

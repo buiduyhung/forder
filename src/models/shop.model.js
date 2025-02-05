@@ -1,7 +1,7 @@
 'use strict'
 
 // !dmbg
-const mongoose = require('mongoose'); // Erase if already required
+const { model, Schema } = require('mongoose');
 
 const DOCUMENT_NAME = 'shop'
 const COLLECTION_NAME = 'shops'
@@ -42,4 +42,4 @@ const shopSchema = new Schema({
 })
 
 //Export the model
-module.exports = mongoose.model(DOCUMENT_NAME, shopSchema);
+module.exports = model(DOCUMENT_NAME, shopSchema);

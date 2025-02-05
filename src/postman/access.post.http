@@ -2,5 +2,11 @@
 
 
 ### signup
-
 POST {{url_dev}}/shop/signup
+Content-Type: application/json
+
+{
+    "name": "Shop TIPS",
+    "email": "shoptipjs3@gmail.com",
+    "password": "password123"
+}
