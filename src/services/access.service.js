@@ -41,10 +41,11 @@ class AccessService {
                 // Tạo cặp khóa RSA
                 const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
                     modulusLength: 4096,
-                })
+                });
 
                 // Lưu khóa vào cơ sở dữ liệu hoặc thực hiện thao tác lưu trữ
-                console.log({ privateKey, publicKey })
+                console.log('Private Key:', privateKey);
+                console.log('Public Key:', publicKey);
 
                 const publicKeyString = await KeyTokenService.createKeyToken({
                     userId: newShop._id,
@@ -60,7 +61,11 @@ class AccessService {
 
                 // created tolen pair
                 const tokens = await createTokenPair({userId: newShop._id, email}, publicKey, privateKey)
-                console.log(`Created token success::`, tokens)
+                if (tokens) {
+                    console.log('Created token success::', tokens);
+                } else {
+                    console.log('Token creation failed');
+                }
 
                 return {
                     code: '201',
