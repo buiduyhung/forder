@@ -11,14 +11,12 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
         }
 
         // Tạo accessToken
-        const accessToken = await JWT.sign(payload, privateKey, {
-            algorithm: 'RS256',
+        const accessToken = await JWT.sign(payload, publicKey, {
             expiresIn: '2 days'
         });
 
         // Tạo refreshToken
         const refreshToken = await JWT.sign(payload, privateKey, {
-            algorithm: 'RS256',
             expiresIn: '7 days'
         });
 

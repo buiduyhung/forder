@@ -2,10 +2,11 @@
 
 const shopModel = require("../models/shop.model")
 const bcrypt = require('bcrypt')
-const crypto = require('crypto')
+const crypto = require('node:crypto')
 const KeyTokenService = require("./keyToken.service")
 const { createTokenPair } = require("../auth/authUtils")
 const { type } = require("os")
+const { getInfoData } = require("../utils")
 
 const roleShop = {
     SHOP: 'SHOP',
@@ -40,50 +41,52 @@ class AccessService {
 
             if (newShop) {
                 // Tạo cặp khóa RSA
-                const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
-                    modulusLength: 4096,
-                    publicKeyEncoding: {
-                        type: 'pkcs1',
-                        format: 'pem',
-                    },
-                    privateKeyEncoding: {
-                        type: 'pkcs1',
-                        format: 'pem',
-                    },
-                });
+                // const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
+                //     modulusLength: 4096,
+                //     publicKeyEncoding: {
+                //         type: 'pkcs1', // public key cryptography standard
+                //         format: 'pem',
+                //     },
+                //     privateKeyEncoding: {
+                //         type: 'pkcs1',
+                //         format: 'pem',
+                //     },
+                // });
 
-                // public key cryptography standard
+                const privateKey = crypto.randomBytes(64).toString('hex');
+                const publicKey = crypto.randomBytes(64).toString('hex');
 
                 // Lưu khóa vào cơ sở dữ liệu hoặc thực hiện thao tác lưu trữ
-                console.log('Private Key:', privateKey);
-                console.log('Public Key:', publicKey);
+                console.log('Private Key:', privateKey)
+                console.log('Public Key:', publicKey)
 
-                const publicKeyString = await KeyTokenService.createKeyToken({
+                const keyStore = await KeyTokenService.createKeyToken({
                     userId: newShop._id,
-                    publicKey
+                    publicKey,
+                    privateKey
                 })
 
-                if(!publicKeyString){
+                if(!keyStore){
                     return {
                         code: 'xxxxx',
-                        message: 'publicKeyString error'
+                        message: 'keyStore error'
                     }
                 }
-                console.log(`publicKeyString::`, publicKeyString)
-                const publicKeyObject = crypto.createPublicKey( publicKeyString )
+                console.log(`keyStore::`, keyStore)
+                // const publicKeyObject = crypto.createPublicKey( publicKeyString )
 
                 // created tolen pair
-                const tokens = await createTokenPair({userId: newShop._id, email}, publicKeyObject, privateKey)
+                const tokens = await createTokenPair({userId: newShop._id, email}, publicKey, privateKey)
                 if (tokens) {
-                    console.log('Created token success::', tokens);
+                    console.log('Created token success::', tokens)
                 } else {
-                    console.log('Token creation failed');
+                    console.log('Token creation failed')
                 }
 
                 return {
                     code: '201',
                     metadata: {
-                        shop: newShop,
+                        shop: getInfoData({ files: ['_id', 'name', 'email'], object: newShop }),
                         tokens
                     }
                 }
