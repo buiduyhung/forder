@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt')
 const crypto = require('crypto')
 const KeyTokenService = require("./keyToken.service")
 const { createTokenPair } = require("../auth/authUtils")
+const { type } = require("os")
 
 const roleShop = {
     SHOP: 'SHOP',
@@ -41,7 +42,17 @@ class AccessService {
                 // Tạo cặp khóa RSA
                 const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
                     modulusLength: 4096,
+                    publicKeyEncoding: {
+                        type: 'pkcs1',
+                        format: 'pem',
+                    },
+                    privateKeyEncoding: {
+                        type: 'pkcs1',
+                        format: 'pem',
+                    },
                 });
+
+                // public key cryptography standard
 
                 // Lưu khóa vào cơ sở dữ liệu hoặc thực hiện thao tác lưu trữ
                 console.log('Private Key:', privateKey);
@@ -58,9 +69,11 @@ class AccessService {
                         message: 'publicKeyString error'
                     }
                 }
+                console.log(`publicKeyString::`, publicKeyString)
+                const publicKeyObject = crypto.createPublicKey( publicKeyString )
 
                 // created tolen pair
-                const tokens = await createTokenPair({userId: newShop._id, email}, publicKey, privateKey)
+                const tokens = await createTokenPair({userId: newShop._id, email}, publicKeyObject, privateKey)
                 if (tokens) {
                     console.log('Created token success::', tokens);
                 } else {
