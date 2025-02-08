@@ -7,6 +7,7 @@ const KeyTokenService = require("./keyToken.service")
 const { createTokenPair } = require("../auth/authUtils")
 const { type } = require("os")
 const { getInfoData } = require("../utils")
+const { BadRequestError } = require("../core/error.response")
 
 const roleShop = {
     SHOP: 'SHOP',
@@ -17,15 +18,12 @@ const roleShop = {
 
 class AccessService {
     static signUp = async ({ name, email, password }) => {
-        try {
+        // try {
             // Kiểm tra nếu email đã tồn tại trong cơ sở dữ liệu
             const hodleShop = await shopModel.findOne({ email }).lean()
 
             if (hodleShop) {
-                return {
-                    code: 'xxxxx',
-                    message: 'Shop already registered!'
-                }
+                throw new BadRequestError('Error: Shop already registered!')
             }
 
             // Mã hóa mật khẩu
@@ -97,14 +95,14 @@ class AccessService {
                 metadata: null
             }
 
-        } catch (error) {
-            console.error(error); // Log lỗi để dễ dàng debug
-            return {
-                code: 'xxxxx',
-                message: error.message,
-                status: 'error'
-            }
-        }
+        // } catch (error) {
+        //     console.error(error); // Log lỗi để dễ dàng debug
+        //     return {
+        //         code: 'xxxxx',
+        //         message: error.message,
+        //         status: 'error'
+        //     }
+        // }
     }
 }
 
