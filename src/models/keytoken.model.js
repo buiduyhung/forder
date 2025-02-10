@@ -20,10 +20,14 @@ var keyTokenSchema = new Schema({
         type: String,
         required: true
     },
+    refreshTokensUsed:{
+        type: Array,
+        default: [], // những refresh tokens used
+    },
     refreshToken:{
         type: Array,
-        default: [],
-    }
+        required: true
+    },
 },{
     timestamps: true,
     collection: COLLECTION_NAME
