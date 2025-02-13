@@ -8,11 +8,11 @@ class ProductFactory {
     static async createProduct(type, payload) {
         switch (type) {
             case 'Clothing':
-                return await new Clothing(payload).createProduct();
+                return await new Clothing(payload).createProduct()
             case 'Electronics':
-                return await new Electronic(payload).createProduct();
+                return await new Electronic(payload).createProduct()
             default:
-                throw new BadRequestError(`Invalid product type: ${type}`);
+                throw new BadRequestError(`Invalid product type: ${type}`)
         }
     }
 }
@@ -39,19 +39,19 @@ class Product {
         this.product_atributes = product_atributes
     }
 
-    async createProduct() {
-        return await product.create(this);
+    async createProduct(product_id) {
+        return await product.create({...this, _id: product_id})
     }
 }
 
 // Define subclass for Clothing products
 class Clothing extends Product {
     async createProduct() {
-        const newClothing = await clothing.create(this.product_atributes);
-        if (!newClothing) throw new BadRequestError("Failed to create clothing");
+        const newClothing = await clothing.create(this.product_atributes)
+        if (!newClothing) throw new BadRequestError("Failed to create clothing")
 
-        const newProduct = await super.createProduct();
-        if (!newProduct) throw new BadRequestError("Failed to create product");
+        const newProduct = await super.createProduct()
+        if (!newProduct) throw new BadRequestError("Failed to create product")
 
         return newProduct;
     }
@@ -60,11 +60,14 @@ class Clothing extends Product {
 // Define subclass for Electronic products
 class Electronic extends Product {
     async createProduct() {
-        const newElectronic = await electronic.create(this.product_atributes);
-        if (!newElectronic) throw new BadRequestError("Failed to create electronic");
+        const newElectronic = await electronic.create({
+            ...this.product_atributes,
+            product_shop: this.product_shop
+        })
+        if (!newElectronic) throw new BadRequestError("Failed to create electronic")
 
-        const newProduct = await super.createProduct();
-        if (!newProduct) throw new BadRequestError("Failed to create product");
+        const newProduct = await super.createProduct(newElectronic._id)
+        if (!newProduct) throw new BadRequestError("Failed to create product")
 
         return newProduct;
     }
